@@ -121,26 +121,11 @@ public class SlackService {
 
     @Transactional(readOnly = true)
     public Page<getSlackMessagesResDto> getSlackMessages(getSlackMessagesReqDto reqDto) {
-        // 허용 가능한 페이지 크기 목록
-        List<Integer> allowedSizes = List.of(10, 30, 50);
-
-        // 기본값(10)
-        int size = allowedSizes.contains(reqDto.getSize()) ? reqDto.getSize() : 10;
-
-        int page = Math.max(reqDto.getPage(), 1) - 1;
-
-        // 기본 정렬 기준
-        String sortBy = (reqDto.getSortBy() == null || reqDto.getSortBy().isBlank())
-                ? "createdAt"
-                : reqDto.getSortBy();
-
-        Pageable pageable = PageRequest.of(
-                page,
-                size,
-                reqDto.isAsc()
-                        ? Sort.by(sortBy).ascending()
-                        : Sort.by(sortBy).descending()
-        );
+        Pageable pageable = buildPageable(
+                reqDto.getPage(),
+                reqDto.getSize(),
+                reqDto.getSortBy(),
+                reqDto.isAsc());
 
         Page<SlackMessage> messagePage = slackRepository.findAll(pageable);
 
@@ -174,5 +159,23 @@ public class SlackService {
                 .deletedAt(message.getDeletedAt())
                 .deletedBy(message.getDeletedBy())
                 .build();
+    }
+
+    private Pageable buildPageable(int page, int size, String sortBy, boolean isAsc) {
+        // 허용 가능한 페이지 크기 목록
+        List<Integer> allowedSizes = List.of(10, 30, 50);
+        // 기본값(10)
+        int validSize = allowedSizes.contains(size) ? size : 10;
+
+        int validPage = Math.max(page, 1) - 1;
+
+        // 기본 정렬 기준
+        String validSortBy = (sortBy == null || sortBy.isBlank()) ? "createdAt" : sortBy;
+
+        Sort sort = isAsc
+                ? Sort.by(validSortBy).ascending()
+                : Sort.by(validSortBy).descending();
+
+        return PageRequest.of(validPage, validSize, sort);
     }
 }
