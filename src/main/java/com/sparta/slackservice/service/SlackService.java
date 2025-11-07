@@ -3,6 +3,7 @@ package com.sparta.slackservice.service;
 import com.sparta.slackservice.domain.SlackMessage;
 import com.sparta.slackservice.domain.SlackMessageStatus;
 import com.sparta.slackservice.dto.request.getSlackMessagesReqDto;
+import com.sparta.slackservice.dto.response.getSlackMessageDetailResDto;
 import com.sparta.slackservice.dto.response.getSlackMessagesResDto;
 import com.sparta.slackservice.dto.response.sendSlackMessageResDto;
 import com.sparta.slackservice.exception.CustomException;
@@ -21,6 +22,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -148,5 +150,25 @@ public class SlackService {
                 .updatedAt(msg.getUpdatedAt())
                 .build()
         );
+    }
+
+    public getSlackMessageDetailResDto getSlackMessageById(UUID slackId) {
+        SlackMessage message = slackRepository.findById(slackId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SLACK_MESSAGE_NOT_FOUND));
+
+        return getSlackMessageDetailResDto.builder()
+                .slackId(message.getSlackId())
+                .slackAccountId(message.getSlackAccountId())
+                .slackMessage(message.getSlackMessage())
+                .channelId(message.getChannelId())
+                .slackMessageTs(message.getSlackMessageTs())
+                .status(message.getStatus())
+                .createdAt(message.getCreatedAt())
+                .createdBy(message.getCreatedBy())
+                .updatedAt(message.getUpdatedAt())
+                .updatedBy(message.getUpdatedBy())
+                .deletedAt(message.getDeletedAt())
+                .deletedBy(message.getDeletedBy())
+                .build();
     }
 }
