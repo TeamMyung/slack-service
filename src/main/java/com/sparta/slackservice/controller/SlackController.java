@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/v1/slack")
+@RequestMapping("/v1/slacks")
 public class SlackController {
 
     private final SlackService slackService;
