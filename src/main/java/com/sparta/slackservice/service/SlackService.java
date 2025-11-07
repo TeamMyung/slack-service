@@ -2,17 +2,24 @@ package com.sparta.slackservice.service;
 
 import com.sparta.slackservice.domain.SlackMessage;
 import com.sparta.slackservice.domain.SlackMessageStatus;
+import com.sparta.slackservice.dto.request.getSlackMessagesReqDto;
+import com.sparta.slackservice.dto.response.getSlackMessagesResDto;
 import com.sparta.slackservice.dto.response.sendSlackMessageResDto;
 import com.sparta.slackservice.exception.CustomException;
 import com.sparta.slackservice.exception.ErrorCode;
 import com.sparta.slackservice.repository.SlackRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -106,5 +113,40 @@ public class SlackService {
                 .slackMessageTs(saved.getSlackMessageTs())
                 .createdAt(saved.getCreatedAt())
                 .build();
+    }
+
+    public Page<getSlackMessagesResDto> getSlackMessages(getSlackMessagesReqDto reqDto) {
+        // 허용 가능한 페이지 크기 목록
+        List<Integer> allowedSizes = List.of(10, 30, 50);
+
+        // 기본값(10)
+        int size = allowedSizes.contains(reqDto.getSize()) ? reqDto.getSize() : 10;
+
+        int page = Math.max(reqDto.getPage(), 1) - 1;
+
+        // 기본 정렬 기준
+        String sortBy = (reqDto.getSortBy() == null || reqDto.getSortBy().isBlank())
+                ? "createdAt"
+                : reqDto.getSortBy();
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                reqDto.isAsc()
+                        ? Sort.by(sortBy).ascending()
+                        : Sort.by(sortBy).descending()
+        );
+
+        Page<SlackMessage> messagePage = slackRepository.findAll(pageable);
+
+        return messagePage.map(msg -> getSlackMessagesResDto.builder()
+                .slackId(msg.getSlackId())
+                .slackAccountId(msg.getSlackAccountId())
+                .message(msg.getSlackMessage())
+                .status(msg.getStatus())
+                .createdAt(msg.getCreatedAt())
+                .updatedAt(msg.getUpdatedAt())
+                .build()
+        );
     }
 }

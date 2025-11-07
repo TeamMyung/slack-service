@@ -1,9 +1,12 @@
 package com.sparta.slackservice.controller;
 
+import com.sparta.slackservice.dto.request.getSlackMessagesReqDto;
 import com.sparta.slackservice.dto.request.sendSlackMessageReqDto;
+import com.sparta.slackservice.dto.response.getSlackMessagesResDto;
 import com.sparta.slackservice.dto.response.sendSlackMessageResDto;
 import com.sparta.slackservice.service.SlackService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +20,12 @@ public class SlackController {
     @PostMapping
     public ResponseEntity<sendSlackMessageResDto> sendSlackMessage(@RequestBody sendSlackMessageReqDto request) {
         sendSlackMessageResDto dto = slackService.sendSlackMessage(request.getSlackAccountId(), request.getText());
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<getSlackMessagesResDto>> getSlackMessage(@ModelAttribute getSlackMessagesReqDto request) {
+        Page<getSlackMessagesResDto> dto = slackService.getSlackMessages(request);
         return ResponseEntity.ok(dto);
     }
 }
