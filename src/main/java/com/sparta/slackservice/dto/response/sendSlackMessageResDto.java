@@ -1,4 +1,4 @@
-package com.sparta.slackservice.dto;
+package com.sparta.slackservice.dto.response;
 
 import com.sparta.slackservice.domain.SlackMessageStatus;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class SlackSendResponseDto {
+public class sendSlackMessageResDto {
     private UUID slackId;
     private String channelId;
     private String message;

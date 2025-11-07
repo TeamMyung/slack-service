@@ -2,7 +2,7 @@ package com.sparta.slackservice.service;
 
 import com.sparta.slackservice.domain.SlackMessage;
 import com.sparta.slackservice.domain.SlackMessageStatus;
-import com.sparta.slackservice.dto.SlackSendResponseDto;
+import com.sparta.slackservice.dto.response.sendSlackMessageResDto;
 import com.sparta.slackservice.exception.CustomException;
 import com.sparta.slackservice.exception.ErrorCode;
 import com.sparta.slackservice.repository.SlackRepository;
@@ -29,7 +29,7 @@ public class SlackService {
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .build();
 
-    public SlackSendResponseDto sendSlackMessage(String slackAccountId, String messageText) {
+    public sendSlackMessageResDto sendSlackMessage(String slackAccountId, String messageText) {
         // 유효성 검증
         if (slackAccountId == null || slackAccountId.isBlank()) {
             throw new CustomException(ErrorCode.INVALID_SLACK_ACCOUNT_ID);
@@ -98,7 +98,7 @@ public class SlackService {
         );
 
         // DTO 반환
-        return SlackSendResponseDto.builder()
+        return sendSlackMessageResDto.builder()
                 .slackId(saved.getSlackId())
                 .channelId(saved.getChannelId())
                 .message(saved.getSlackMessage())
