@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
@@ -38,6 +39,7 @@ public class SlackService {
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .build();
 
+    @Transactional
     public sendSlackMessageResDto sendSlackMessage(String slackAccountId, String messageText) {
         // 유효성 검증
         if (slackAccountId == null || slackAccountId.isBlank()) {
@@ -117,6 +119,7 @@ public class SlackService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
     public Page<getSlackMessagesResDto> getSlackMessages(getSlackMessagesReqDto reqDto) {
         // 허용 가능한 페이지 크기 목록
         List<Integer> allowedSizes = List.of(10, 30, 50);
@@ -152,6 +155,7 @@ public class SlackService {
         );
     }
 
+    @Transactional(readOnly = true)
     public getSlackMessageDetailResDto getSlackMessageById(UUID slackId) {
         SlackMessage message = slackRepository.findById(slackId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SLACK_MESSAGE_NOT_FOUND));
