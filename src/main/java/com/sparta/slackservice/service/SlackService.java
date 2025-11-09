@@ -164,9 +164,9 @@ public class SlackService {
     }
 
     @Transactional
-    public updateSlackMessageResDto updateSlackMessage(UUID id, updateSlackMessageReqDto request) {
+    public updateSlackMessageResDto updateSlackMessage(UUID slackId, updateSlackMessageReqDto request) {
 
-        SlackMessage message = slackRepository.findById(id)
+        SlackMessage message = slackRepository.findById(slackId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SLACK_USER_NOT_FOUND));
 
         // chat.update 호출
