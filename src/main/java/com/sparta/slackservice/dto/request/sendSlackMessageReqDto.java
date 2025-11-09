@@ -10,5 +10,4 @@ import lombok.Setter;
 public class sendSlackMessageReqDto {
         private String slackAccountId;
         private String text;
-        private String channelId;
 }
