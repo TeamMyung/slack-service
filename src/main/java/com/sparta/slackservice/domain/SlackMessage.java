@@ -39,4 +39,9 @@ public class SlackMessage extends BaseEntity{
         this.slackMessage = newMessage;
         this.status = SlackMessageStatus.UPDATED;
     }
+
+    public void markAsDeleted() {
+        this.status = SlackMessageStatus.DELETED;
+        this.setDeleted();
+    }
 }

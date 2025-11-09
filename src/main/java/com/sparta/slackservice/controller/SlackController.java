@@ -1,12 +1,10 @@
 package com.sparta.slackservice.controller;
 
+import com.sparta.slackservice.dto.request.deleteSlackMessageReqDto;
 import com.sparta.slackservice.dto.request.getSlackMessagesReqDto;
 import com.sparta.slackservice.dto.request.sendSlackMessageReqDto;
 import com.sparta.slackservice.dto.request.updateSlackMessageReqDto;
-import com.sparta.slackservice.dto.response.getSlackMessageDetailResDto;
-import com.sparta.slackservice.dto.response.getSlackMessagesResDto;
-import com.sparta.slackservice.dto.response.sendSlackMessageResDto;
-import com.sparta.slackservice.dto.response.updateSlackMessageResDto;
+import com.sparta.slackservice.dto.response.*;
 import com.sparta.slackservice.service.SlackService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -46,6 +44,15 @@ public class SlackController {
             @RequestBody updateSlackMessageReqDto request
     ) {
         updateSlackMessageResDto dto = slackService.updateSlackMessage(id, request);
+        return ResponseEntity.ok(dto);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<deleteSlackMessageResDto> deleteSlackMessage(
+            @PathVariable UUID id,
+            @RequestBody deleteSlackMessageReqDto request
+    ) {
+        deleteSlackMessageResDto dto = slackService.deleteSlackMessage(id, request);
         return ResponseEntity.ok(dto);
     }
 }
