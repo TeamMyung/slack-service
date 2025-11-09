@@ -4,6 +4,7 @@ import brave.internal.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -33,4 +34,9 @@ public class SlackMessage extends BaseEntity{
 
     @Column(nullable = false)
     private String slackMessageTs;
+
+    public void updateMessage(String newMessage) {
+        this.slackMessage = newMessage;
+        this.status = SlackMessageStatus.UPDATED;
+    }
 }

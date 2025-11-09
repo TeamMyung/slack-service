@@ -3,9 +3,11 @@ package com.sparta.slackservice.service;
 import com.sparta.slackservice.domain.SlackMessage;
 import com.sparta.slackservice.domain.SlackMessageStatus;
 import com.sparta.slackservice.dto.request.getSlackMessagesReqDto;
+import com.sparta.slackservice.dto.request.updateSlackMessageReqDto;
 import com.sparta.slackservice.dto.response.getSlackMessageDetailResDto;
 import com.sparta.slackservice.dto.response.getSlackMessagesResDto;
 import com.sparta.slackservice.dto.response.sendSlackMessageResDto;
+import com.sparta.slackservice.dto.response.updateSlackMessageResDto;
 import com.sparta.slackservice.exception.CustomException;
 import com.sparta.slackservice.exception.ErrorCode;
 import com.sparta.slackservice.repository.SlackRepository;
@@ -158,6 +160,43 @@ public class SlackService {
                 .updatedBy(message.getUpdatedBy())
                 .deletedAt(message.getDeletedAt())
                 .deletedBy(message.getDeletedBy())
+                .build();
+    }
+
+    @Transactional
+    public updateSlackMessageResDto updateSlackMessage(UUID id, updateSlackMessageReqDto request) {
+
+        SlackMessage message = slackRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.SLACK_USER_NOT_FOUND));
+
+        // chat.update 호출
+        Map<String, Object> response = webClient.post()
+                .uri("/chat.update")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + slackBotToken)
+                .bodyValue(Map.of(
+                        "channel", request.getChannelId(),
+                        "ts", request.getSlackMessageTs(),
+                        "text", request.getNewText()
+                ))
+                .retrieve()
+                .bodyToMono(Map.class)
+                .block();
+
+        if (response == null || !Boolean.TRUE.equals(response.get("ok"))) {
+            throw new CustomException(ErrorCode.SLACK_MESSAGE_SEND_FAILED);
+        }
+
+        // DB 반영
+        message.updateMessage(request.getNewText());
+
+        // DTO 반환
+        return updateSlackMessageResDto.builder()
+                .slackId(message.getSlackId())
+                .channelId(message.getChannelId())
+                .message(message.getSlackMessage())
+                .status(message.getStatus())
+                .slackMessageTs(message.getSlackMessageTs())
+                .updatedAt(message.getUpdatedAt())
                 .build();
     }
 
