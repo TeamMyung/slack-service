@@ -1,9 +1,6 @@
 package com.sparta.slackservice.controller;
 
-import com.sparta.slackservice.dto.request.deleteSlackMessageReqDto;
-import com.sparta.slackservice.dto.request.getSlackMessagesReqDto;
-import com.sparta.slackservice.dto.request.sendSlackMessageReqDto;
-import com.sparta.slackservice.dto.request.updateSlackMessageReqDto;
+import com.sparta.slackservice.dto.request.*;
 import com.sparta.slackservice.dto.response.*;
 import com.sparta.slackservice.service.SlackService;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +50,13 @@ public class SlackController {
             @RequestBody deleteSlackMessageReqDto request
     ) {
         deleteSlackMessageResDto dto = slackService.deleteSlackMessage(id, request);
+        return ResponseEntity.ok(dto);
+    }
+
+    // 다건 삭제
+    @DeleteMapping
+    public ResponseEntity<deleteSlackMessagesResDto> deleteSlackMessages(@RequestBody deleteSlackMessagesReqDto request) {
+        deleteSlackMessagesResDto dto = slackService.deleteSlackMessages(request);
         return ResponseEntity.ok(dto);
     }
 }

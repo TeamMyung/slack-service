@@ -3,6 +3,7 @@ package com.sparta.slackservice.service;
 import com.sparta.slackservice.domain.SlackMessage;
 import com.sparta.slackservice.domain.SlackMessageStatus;
 import com.sparta.slackservice.dto.request.deleteSlackMessageReqDto;
+import com.sparta.slackservice.dto.request.deleteSlackMessagesReqDto;
 import com.sparta.slackservice.dto.request.getSlackMessagesReqDto;
 import com.sparta.slackservice.dto.request.updateSlackMessageReqDto;
 import com.sparta.slackservice.dto.response.*;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -230,6 +232,52 @@ public class SlackService {
                 .deletedAt(message.getDeletedAt())
                 .build();
     }
+
+    // 다건 삭제
+    @Transactional
+    public deleteSlackMessagesResDto deleteSlackMessages(deleteSlackMessagesReqDto request) {
+
+        List<deleteSlackMessagesResDto.DeletedMessageInfo> deletedList = new ArrayList<>();
+
+        for (deleteSlackMessagesReqDto.MessageDeleteInfo msg : request.getMessages()) {
+
+            SlackMessage message = slackRepository.findById(msg.getSlackId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.SLACK_USER_NOT_FOUND));
+
+            // Slack API 호출
+            Map<String, Object> response = webClient.post()
+                    .uri("/chat.delete")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + slackBotToken)
+                    .bodyValue(Map.of(
+                            "channel", msg.getChannelId(),
+                            "ts", msg.getSlackMessageTs()
+                    ))
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+
+            if (response == null || !Boolean.TRUE.equals(response.get("ok"))) {
+                throw new CustomException(ErrorCode.SLACK_MESSAGE_SEND_FAILED);
+            }
+
+            // Soft delete
+            message.markAsDeleted();
+
+            // 결과 리스트에 추가
+            deletedList.add(
+                    deleteSlackMessagesResDto.DeletedMessageInfo.builder()
+                            .slackId(message.getSlackId())
+                            .status(message.getStatus())
+                            .deletedAt(message.getDeletedAt())
+                            .build()
+            );
+        }
+
+        return deleteSlackMessagesResDto.builder()
+                .deletedMessages(deletedList)
+                .build();
+    }
+
 
     private Pageable buildPageable(int page, int size, String sortBy, boolean isAsc) {
         // 허용 가능한 페이지 크기 목록
