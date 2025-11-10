@@ -20,5 +20,6 @@ public class DeleteSlackMessagesResDto {
         private UUID slackId;
         private SlackMessageStatus status;
         private LocalDateTime deletedAt;
+        private Long deletedBy;
     }
 }

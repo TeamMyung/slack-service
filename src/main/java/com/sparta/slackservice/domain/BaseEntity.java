@@ -33,5 +33,6 @@ public class BaseEntity {
 
     public void setDeleted() {
         this.deletedAt = LocalDateTime.now();
+        this.deletedBy = 1L; // 임시 사용자 ID
     }
 }

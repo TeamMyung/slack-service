@@ -111,6 +111,7 @@ public class SlackService {
                 .status(saved.getStatus())
                 .slackMessageTs(saved.getSlackMessageTs())
                 .createdAt(saved.getCreatedAt())
+                .createdBy(saved.getCreatedBy())
                 .build();
     }
 
@@ -206,6 +207,7 @@ public class SlackService {
                 .status(message.getStatus())
                 .slackMessageTs(message.getSlackMessageTs())
                 .updatedAt(message.getUpdatedAt())
+                .updatedBy(message.getUpdatedBy())
                 .build();
     }
 
@@ -248,6 +250,7 @@ public class SlackService {
                             .slackId(message.getSlackId())
                             .status(message.getStatus())
                             .deletedAt(message.getDeletedAt())
+                            .deletedBy(message.getDeletedBy())
                             .build()
             );
         }

@@ -16,4 +16,5 @@ public class UpdateSlackMessageResDto {
     private SlackMessageStatus status;
     private String slackMessageTs;
     private LocalDateTime updatedAt;
+    private Long updatedBy;
 }

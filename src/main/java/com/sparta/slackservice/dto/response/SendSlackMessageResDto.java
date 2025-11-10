@@ -16,4 +16,5 @@ public class SendSlackMessageResDto {
     private SlackMessageStatus status;
     private String slackMessageTs;
     private LocalDateTime createdAt;
+    private Long createdBy;
 }
