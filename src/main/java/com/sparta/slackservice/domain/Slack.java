@@ -13,7 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "p_slacks")
-public class SlackMessage extends BaseEntity{
+public class Slack extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -1,6 +1,6 @@
 package com.sparta.slackservice.service;
 
-import com.sparta.slackservice.domain.SlackMessage;
+import com.sparta.slackservice.domain.Slack;
 import com.sparta.slackservice.domain.SlackMessageStatus;
 import com.sparta.slackservice.dto.request.deleteSlackMessageReqDto;
 import com.sparta.slackservice.dto.request.deleteSlackMessagesReqDto;
@@ -100,8 +100,8 @@ public class SlackService {
         String ts = (String) msgResp.get("ts");
 
         // DB 저장
-        SlackMessage saved = slackRepository.save(
-                SlackMessage.builder()
+        Slack saved = slackRepository.save(
+                Slack.builder()
                         .slackAccountId(slackAccountId)
                         .slackMessage(messageText)
                         .channelId(channelId)
@@ -129,7 +129,7 @@ public class SlackService {
                 reqDto.getSortBy(),
                 reqDto.isAsc());
 
-        Page<SlackMessage> messagePage = slackRepository.findAll(pageable);
+        Page<Slack> messagePage = slackRepository.findAll(pageable);
 
         return messagePage.map(msg -> getSlackMessagesResDto.builder()
                 .slackId(msg.getSlackId())
@@ -144,7 +144,7 @@ public class SlackService {
 
     @Transactional(readOnly = true)
     public getSlackMessageDetailResDto getSlackMessageById(UUID slackId) {
-        SlackMessage message = slackRepository.findById(slackId)
+        Slack message = slackRepository.findById(slackId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SLACK_MESSAGE_NOT_FOUND));
 
         return getSlackMessageDetailResDto.builder()
@@ -166,7 +166,7 @@ public class SlackService {
     @Transactional
     public updateSlackMessageResDto updateSlackMessage(UUID slackId, updateSlackMessageReqDto request) {
 
-        SlackMessage message = slackRepository.findById(slackId)
+        Slack message = slackRepository.findById(slackId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SLACK_USER_NOT_FOUND));
 
         // chat.update 호출
@@ -203,7 +203,7 @@ public class SlackService {
     @Transactional
     public deleteSlackMessageResDto deleteSlackMessage(UUID slackId, deleteSlackMessageReqDto request) {
 
-        SlackMessage message = slackRepository.findById(slackId)
+        Slack message = slackRepository.findById(slackId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SLACK_USER_NOT_FOUND));
 
         // chat.delete 호출
@@ -241,7 +241,7 @@ public class SlackService {
 
         for (deleteSlackMessagesReqDto.MessageDeleteInfo msg : request.getMessages()) {
 
-            SlackMessage message = slackRepository.findById(msg.getSlackId())
+            Slack message = slackRepository.findById(msg.getSlackId())
                     .orElseThrow(() -> new CustomException(ErrorCode.SLACK_USER_NOT_FOUND));
 
             // Slack API 호출
