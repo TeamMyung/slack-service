@@ -5,7 +5,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.slackservice.domain.QSlack;
 import com.sparta.slackservice.domain.Slack;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -18,29 +18,26 @@ public class SlackRepositoryImpl implements SlackRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<Slack> searchSlackMessages(String keyword, Pageable pageable) {
+    public Page<Slack> searchSlackMessages(String keyword, Pageable pageable) {
         QSlack s = QSlack.slack;
 
-        return queryFactory
+        List<Slack> content = queryFactory
                 .selectFrom(s)
                 .where(containsKeyword(keyword))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(s.createdAt.desc())
                 .fetch();
-    }
 
-    @Override
-    public long countSlackMessages(String keyword) {
-        QSlack s = QSlack.slack;
-
-        Long count = queryFactory
+        Long total = queryFactory
                 .select(s.count())
                 .from(s)
                 .where(containsKeyword(keyword))
                 .fetchOne();
 
-        return count != null ? count : 0L;
+        long totalCount = total != null ? total : 0L;
+
+        return new PageImpl<>(content, pageable, totalCount);
     }
 
     private BooleanExpression containsKeyword(String keyword) {

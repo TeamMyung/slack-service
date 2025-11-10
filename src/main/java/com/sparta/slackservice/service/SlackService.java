@@ -227,22 +227,16 @@ public class SlackService {
     @Transactional(readOnly = true)
     public Page<SearchSlackMessagesResDto> searchSlackMessages(SearchSlackMessagesReqDto req) {
         Pageable pageable = buildPageable(req.getPage(), req.getSize(), req.getSortBy(), req.isAsc());
+        Page<Slack> resultPage = slackRepository.searchSlackMessages(req.getKeyword(), pageable);
 
-        List<Slack> slacks = slackRepository.searchSlackMessages(req.getKeyword(), pageable);
-        long total = slackRepository.countSlackMessages(req.getKeyword());
-
-        List<SearchSlackMessagesResDto> dtoList = slacks.stream()
-                .map(m -> SearchSlackMessagesResDto.builder()
-                        .slackId(m.getSlackId())
-                        .slackAccountId(m.getSlackAccountId())
-                        .slackMessage(m.getSlackMessage())
-                        .status(m.getStatus())
-                        .createdAt(m.getCreatedAt())
-                        .updatedAt(m.getUpdatedAt())
-                        .build())
-                .toList();
-
-        return new PageImpl<>(dtoList, pageable, total);
+        return resultPage.map(m -> SearchSlackMessagesResDto.builder()
+                .slackId(m.getSlackId())
+                .slackAccountId(m.getSlackAccountId())
+                .slackMessage(m.getSlackMessage())
+                .status(m.getStatus())
+                .createdAt(m.getCreatedAt())
+                .updatedAt(m.getUpdatedAt())
+                .build());
     }
 
     private Pageable buildPageable(int page, int size, String sortBy, boolean isAsc) {
