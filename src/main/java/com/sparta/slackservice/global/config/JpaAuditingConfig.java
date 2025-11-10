@@ -1,4 +1,4 @@
-package com.sparta.slackservice.config;
+package com.sparta.slackservice.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package com.sparta.slackservice.exception;
+package com.sparta.slackservice.global.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

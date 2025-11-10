@@ -1,6 +1,6 @@
-package com.sparta.slackservice.config;
+package com.sparta.slackservice.global.config;
 
-import com.sparta.slackservice.exception.ErrorCode;
+import com.sparta.slackservice.global.exception.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

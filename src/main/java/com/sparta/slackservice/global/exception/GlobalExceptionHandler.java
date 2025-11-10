@@ -1,6 +1,6 @@
-package com.sparta.slackservice.exception;
+package com.sparta.slackservice.global.exception;
 
-import com.sparta.slackservice.config.ApiResponse;
+import com.sparta.slackservice.global.config.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
