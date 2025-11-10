@@ -32,6 +32,14 @@ public class SlackService {
     @Value("${slack.bot.token}")
     private String slackBotToken;
 
+    /**
+     * Slack 사용자에게 DM 메시지를 전송한다.
+     *
+     * @param slackAccountId Slack 사용자 ID
+     * @param messageText 전송할 메시지 내용
+     * @return 전송 결과 {@link SendSlackMessageResDto}
+     * @throws CustomException Slack 사용자 ID가 유효하지 않거나, Slack API 호출 실패 시
+     */
     @Transactional
     public SendSlackMessageResDto sendSlackMessage(String slackAccountId, String messageText) {
         // 유효성 검증
@@ -106,6 +114,12 @@ public class SlackService {
                 .build();
     }
 
+    /**
+     * Slack 메시지 목록을 페이징 및 조회한다.
+     *
+     * @param reqDto 페이징 및 정렬 요청 정보
+     * @return {@link GetSlackMessagesResDto}의 페이징 결과
+     */
     @Transactional(readOnly = true)
     public Page<GetSlackMessagesResDto> getSlackMessages(GetSlackMessagesReqDto reqDto) {
         Pageable pageable = buildPageable(
@@ -127,6 +141,12 @@ public class SlackService {
         );
     }
 
+    /**
+     * 특정 Slack 메시지의 상세 정보를 조회한다.
+     *
+     * @param slackId Slack 메시지 UUID
+     * @return 상세 정보 {@link GetSlackMessageDetailResDto}
+     */
     @Transactional(readOnly = true)
     public GetSlackMessageDetailResDto getSlackMessageById(UUID slackId) {
         Slack message = slackRepository.findById(slackId)
@@ -148,6 +168,13 @@ public class SlackService {
                 .build();
     }
 
+    /**
+     * Slack 메시지를 수정한다.
+     *
+     * @param slackId 수정할 메시지의 UUID
+     * @param request 수정 요청 DTO
+     * @return 수정 결과 {@link UpdateSlackMessageResDto}
+     */
     @Transactional
     public UpdateSlackMessageResDto updateSlackMessage(UUID slackId, UpdateSlackMessageReqDto request) {
 
@@ -182,7 +209,13 @@ public class SlackService {
                 .build();
     }
 
-    // 단건, 다건 삭제
+    /**
+     * Slack 메시지를 단건, 다건 삭제한디.
+     * <p>Slack API를 통해 실제 메시지를 삭제하고, DB에서는 Soft Delete 처리한다.</p>
+     *
+     * @param request 삭제할 메시지 목록 요청 DTO
+     * @return 삭제된 메시지 정보 {@link DeleteSlackMessagesResDto}
+     */
     @Transactional
     public DeleteSlackMessagesResDto deleteSlackMessages(DeleteSlackMessagesReqDto request) {
 
@@ -224,6 +257,12 @@ public class SlackService {
                 .build();
     }
 
+    /**
+     * Slack 메시지를 키워드로 검색한다.
+     *
+     * @param req 검색 요청 DTO
+     * @return {@link SearchSlackMessagesResDto} 페이징 결과
+     */
     @Transactional(readOnly = true)
     public Page<SearchSlackMessagesResDto> searchSlackMessages(SearchSlackMessagesReqDto req) {
         Pageable pageable = buildPageable(req.getPage(), req.getSize(), req.getSortBy(), req.isAsc());
@@ -239,6 +278,15 @@ public class SlackService {
                 .build());
     }
 
+    /**
+     * Pageable 객체를 생성한다.
+     *
+     * @param page 페이지 번호 (1부터 시작)
+     * @param size 페이지 크기 (10, 30, 50)
+     * @param sortBy 정렬 기준
+     * @param isAsc 오름차순 여부
+     * @return Pageable 객체
+     */
     private Pageable buildPageable(int page, int size, String sortBy, boolean isAsc) {
         // 허용 가능한 페이지 크기 목록
         List<Integer> allowedSizes = List.of(10, 30, 50);
