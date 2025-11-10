@@ -22,9 +22,7 @@ public class SlackController {
     @PostMapping
     public ResponseEntity<ApiResponse<SendSlackMessageResDto>> sendSlackMessage(@RequestBody SendSlackMessageReqDto request) {
         SendSlackMessageResDto dto = slackService.sendSlackMessage(request.getSlackAccountId(), request.getText());
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(new ApiResponse<>(dto));
+        return ResponseEntity.ok(new ApiResponse<>(dto));
     }
 
     @GetMapping
@@ -51,9 +49,7 @@ public class SlackController {
     @DeleteMapping
     public ResponseEntity<ApiResponse<DeleteSlackMessagesResDto>> deleteSlackMessages(@RequestBody DeleteSlackMessagesReqDto request) {
         DeleteSlackMessagesResDto dto = slackService.deleteSlackMessages(request);
-        return ResponseEntity
-                .status(HttpStatus.NO_CONTENT)
-                .body(new ApiResponse<>(dto));
+        return ResponseEntity.ok(new ApiResponse<>(dto));
     }
 
     @GetMapping("/search")
