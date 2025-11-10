@@ -9,20 +9,11 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class getSlackMessageDetailResDto {
-
+public class UpdateSlackMessageResDto {
     private UUID slackId;
-    private String slackAccountId;
-    private String slackMessage;
     private String channelId;
-    private String slackMessageTs;
+    private String message;
     private SlackMessageStatus status;
-
-    private LocalDateTime createdAt;
-    private Long createdBy;
+    private String slackMessageTs;
     private LocalDateTime updatedAt;
-    private Long updatedBy;
-    private LocalDateTime deletedAt;
-    private Long deletedBy;
 }
-

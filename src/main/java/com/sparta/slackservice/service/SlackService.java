@@ -36,7 +36,7 @@ public class SlackService {
             .build();
 
     @Transactional
-    public sendSlackMessageResDto sendSlackMessage(String slackAccountId, String messageText) {
+    public SendSlackMessageResDto sendSlackMessage(String slackAccountId, String messageText) {
         // 유효성 검증
         if (slackAccountId == null || slackAccountId.isBlank()) {
             throw new CustomException(ErrorCode.INVALID_SLACK_ACCOUNT_ID);
@@ -105,7 +105,7 @@ public class SlackService {
         );
 
         // DTO 반환
-        return sendSlackMessageResDto.builder()
+        return SendSlackMessageResDto.builder()
                 .slackId(saved.getSlackId())
                 .channelId(saved.getChannelId())
                 .message(saved.getSlackMessage())
@@ -116,7 +116,7 @@ public class SlackService {
     }
 
     @Transactional(readOnly = true)
-    public Page<getSlackMessagesResDto> getSlackMessages(getSlackMessagesReqDto reqDto) {
+    public Page<GetSlackMessagesResDto> getSlackMessages(GetSlackMessagesReqDto reqDto) {
         Pageable pageable = buildPageable(
                 reqDto.getPage(),
                 reqDto.getSize(),
@@ -125,7 +125,7 @@ public class SlackService {
 
         Page<Slack> messagePage = slackRepository.findAll(pageable);
 
-        return messagePage.map(msg -> getSlackMessagesResDto.builder()
+        return messagePage.map(msg -> GetSlackMessagesResDto.builder()
                 .slackId(msg.getSlackId())
                 .slackAccountId(msg.getSlackAccountId())
                 .message(msg.getSlackMessage())
@@ -137,11 +137,11 @@ public class SlackService {
     }
 
     @Transactional(readOnly = true)
-    public getSlackMessageDetailResDto getSlackMessageById(UUID slackId) {
+    public GetSlackMessageDetailResDto getSlackMessageById(UUID slackId) {
         Slack message = slackRepository.findById(slackId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SLACK_MESSAGE_NOT_FOUND));
 
-        return getSlackMessageDetailResDto.builder()
+        return GetSlackMessageDetailResDto.builder()
                 .slackId(message.getSlackId())
                 .slackAccountId(message.getSlackAccountId())
                 .slackMessage(message.getSlackMessage())
@@ -158,7 +158,7 @@ public class SlackService {
     }
 
     @Transactional
-    public updateSlackMessageResDto updateSlackMessage(UUID slackId, updateSlackMessageReqDto request) {
+    public UpdateSlackMessageResDto updateSlackMessage(UUID slackId, UpdateSlackMessageReqDto request) {
 
         Slack message = slackRepository.findById(slackId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SLACK_USER_NOT_FOUND));
@@ -184,7 +184,7 @@ public class SlackService {
         message.updateMessage(request.getNewText());
 
         // DTO 반환
-        return updateSlackMessageResDto.builder()
+        return UpdateSlackMessageResDto.builder()
                 .slackId(message.getSlackId())
                 .channelId(message.getChannelId())
                 .message(message.getSlackMessage())
@@ -196,11 +196,11 @@ public class SlackService {
 
     // 단건, 다건 삭제
     @Transactional
-    public deleteSlackMessagesResDto deleteSlackMessages(deleteSlackMessagesReqDto request) {
+    public DeleteSlackMessagesResDto deleteSlackMessages(DeleteSlackMessagesReqDto request) {
 
-        List<deleteSlackMessagesResDto.DeletedMessageInfo> deletedList = new ArrayList<>();
+        List<DeleteSlackMessagesResDto.DeletedMessageInfo> deletedList = new ArrayList<>();
 
-        for (deleteSlackMessagesReqDto.MessageDeleteInfo msg : request.getMessages()) {
+        for (DeleteSlackMessagesReqDto.MessageDeleteInfo msg : request.getMessages()) {
 
             Slack message = slackRepository.findById(msg.getSlackId())
                     .orElseThrow(() -> new CustomException(ErrorCode.SLACK_USER_NOT_FOUND));
@@ -226,7 +226,7 @@ public class SlackService {
 
             // 결과 리스트에 추가
             deletedList.add(
-                    deleteSlackMessagesResDto.DeletedMessageInfo.builder()
+                    DeleteSlackMessagesResDto.DeletedMessageInfo.builder()
                             .slackId(message.getSlackId())
                             .status(message.getStatus())
                             .deletedAt(message.getDeletedAt())
@@ -234,20 +234,20 @@ public class SlackService {
             );
         }
 
-        return deleteSlackMessagesResDto.builder()
+        return DeleteSlackMessagesResDto.builder()
                 .deletedMessages(deletedList)
                 .build();
     }
 
     @Transactional(readOnly = true)
-    public Page<searchSlackMessagesResDto> searchSlackMessages(searchSlackMessagesReqDto req) {
+    public Page<SearchSlackMessagesResDto> searchSlackMessages(SearchSlackMessagesReqDto req) {
         Pageable pageable = buildPageable(req.getPage(), req.getSize(), req.getSortBy(), req.isAsc());
 
         List<Slack> slacks = slackRepository.searchSlackMessages(req.getKeyword(), pageable);
         long total = slackRepository.countSlackMessages(req.getKeyword());
 
-        List<searchSlackMessagesResDto> dtoList = slacks.stream()
-                .map(m -> searchSlackMessagesResDto.builder()
+        List<SearchSlackMessagesResDto> dtoList = slacks.stream()
+                .map(m -> SearchSlackMessagesResDto.builder()
                         .slackId(m.getSlackId())
                         .slackAccountId(m.getSlackAccountId())
                         .slackMessage(m.getSlackMessage())

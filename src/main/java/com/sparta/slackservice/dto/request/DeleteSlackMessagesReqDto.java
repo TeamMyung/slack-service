@@ -10,7 +10,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class deleteSlackMessagesReqDto {
+public class DeleteSlackMessagesReqDto {
 
     @Getter
     @Setter

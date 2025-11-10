@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class deleteSlackMessagesResDto {
+public class DeleteSlackMessagesResDto {
 
     private List<DeletedMessageInfo> deletedMessages;
 

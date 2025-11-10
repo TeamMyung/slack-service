@@ -3,7 +3,6 @@ package com.sparta.slackservice.controller;
 import com.sparta.slackservice.dto.request.*;
 import com.sparta.slackservice.dto.response.*;
 import com.sparta.slackservice.service.SlackService;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -19,41 +18,41 @@ public class SlackController {
     private final SlackService slackService;
 
     @PostMapping
-    public ResponseEntity<sendSlackMessageResDto> sendSlackMessage(@RequestBody sendSlackMessageReqDto request) {
-        sendSlackMessageResDto dto = slackService.sendSlackMessage(request.getSlackAccountId(), request.getText());
+    public ResponseEntity<SendSlackMessageResDto> sendSlackMessage(@RequestBody SendSlackMessageReqDto request) {
+        SendSlackMessageResDto dto = slackService.sendSlackMessage(request.getSlackAccountId(), request.getText());
         return ResponseEntity.ok(dto);
     }
 
     @GetMapping
-    public ResponseEntity<Page<getSlackMessagesResDto>> getSlackMessage(@ModelAttribute getSlackMessagesReqDto request) {
-        Page<getSlackMessagesResDto> dto = slackService.getSlackMessages(request);
+    public ResponseEntity<Page<GetSlackMessagesResDto>> getSlackMessage(@ModelAttribute GetSlackMessagesReqDto request) {
+        Page<GetSlackMessagesResDto> dto = slackService.getSlackMessages(request);
         return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<getSlackMessageDetailResDto> getSlackMessage(@PathVariable UUID id) {
-        getSlackMessageDetailResDto dto = slackService.getSlackMessageById(id);
+    public ResponseEntity<GetSlackMessageDetailResDto> getSlackMessage(@PathVariable UUID id) {
+        GetSlackMessageDetailResDto dto = slackService.getSlackMessageById(id);
         return ResponseEntity.ok(dto);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<updateSlackMessageResDto> updateSlackMessage(
+    public ResponseEntity<UpdateSlackMessageResDto> updateSlackMessage(
             @PathVariable UUID id,
-            @RequestBody updateSlackMessageReqDto request
+            @RequestBody UpdateSlackMessageReqDto request
     ) {
-        updateSlackMessageResDto dto = slackService.updateSlackMessage(id, request);
+        UpdateSlackMessageResDto dto = slackService.updateSlackMessage(id, request);
         return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping
-    public ResponseEntity<deleteSlackMessagesResDto> deleteSlackMessages(@RequestBody deleteSlackMessagesReqDto request) {
-        deleteSlackMessagesResDto dto = slackService.deleteSlackMessages(request);
+    public ResponseEntity<DeleteSlackMessagesResDto> deleteSlackMessages(@RequestBody DeleteSlackMessagesReqDto request) {
+        DeleteSlackMessagesResDto dto = slackService.deleteSlackMessages(request);
         return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<searchSlackMessagesResDto>> searchSlackMessages(@ModelAttribute searchSlackMessagesReqDto request) {
-        Page<searchSlackMessagesResDto> dto = slackService.searchSlackMessages(request);
+    public ResponseEntity<Page<SearchSlackMessagesResDto>> searchSlackMessages(@ModelAttribute SearchSlackMessagesReqDto request) {
+        Page<SearchSlackMessagesResDto> dto = slackService.searchSlackMessages(request);
         return ResponseEntity.ok(dto);
     }
 }
