@@ -3,6 +3,7 @@ package com.sparta.slackservice.controller;
 import com.sparta.slackservice.dto.request.*;
 import com.sparta.slackservice.dto.response.*;
 import com.sparta.slackservice.service.SlackService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -57,6 +58,12 @@ public class SlackController {
     @DeleteMapping
     public ResponseEntity<deleteSlackMessagesResDto> deleteSlackMessages(@RequestBody deleteSlackMessagesReqDto request) {
         deleteSlackMessagesResDto dto = slackService.deleteSlackMessages(request);
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<searchSlackMessagesResDto>> searchSlackMessages(@ModelAttribute searchSlackMessagesReqDto request) {
+        Page<searchSlackMessagesResDto> dto = slackService.searchSlackMessages(request);
         return ResponseEntity.ok(dto);
     }
 }

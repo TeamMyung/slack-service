@@ -2,20 +2,14 @@ package com.sparta.slackservice.service;
 
 import com.sparta.slackservice.domain.Slack;
 import com.sparta.slackservice.domain.SlackMessageStatus;
-import com.sparta.slackservice.dto.request.deleteSlackMessageReqDto;
-import com.sparta.slackservice.dto.request.deleteSlackMessagesReqDto;
-import com.sparta.slackservice.dto.request.getSlackMessagesReqDto;
-import com.sparta.slackservice.dto.request.updateSlackMessageReqDto;
+import com.sparta.slackservice.dto.request.*;
 import com.sparta.slackservice.dto.response.*;
-import com.sparta.slackservice.exception.CustomException;
-import com.sparta.slackservice.exception.ErrorCode;
+import com.sparta.slackservice.global.exception.CustomException;
+import com.sparta.slackservice.global.exception.ErrorCode;
 import com.sparta.slackservice.repository.SlackRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -278,6 +272,26 @@ public class SlackService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public Page<searchSlackMessagesResDto> searchSlackMessages(searchSlackMessagesReqDto req) {
+        Pageable pageable = buildPageable(req.getPage(), req.getSize(), req.getSortBy(), req.isAsc());
+
+        List<Slack> slacks = slackRepository.searchSlackMessages(req.getKeyword(), pageable);
+        long total = slackRepository.countSlackMessages(req.getKeyword());
+
+        List<searchSlackMessagesResDto> dtoList = slacks.stream()
+                .map(m -> searchSlackMessagesResDto.builder()
+                        .slackId(m.getSlackId())
+                        .slackAccountId(m.getSlackAccountId())
+                        .slackMessage(m.getSlackMessage())
+                        .status(m.getStatus())
+                        .createdAt(m.getCreatedAt())
+                        .updatedAt(m.getUpdatedAt())
+                        .build())
+                .toList();
+
+        return new PageImpl<>(dtoList, pageable, total);
+    }
 
     private Pageable buildPageable(int page, int size, String sortBy, boolean isAsc) {
         // 허용 가능한 페이지 크기 목록
