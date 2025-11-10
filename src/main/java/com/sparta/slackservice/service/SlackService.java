@@ -1,8 +1,12 @@
 package com.sparta.slackservice.service;
 
+import com.sparta.slackservice.client.SlackFeignClient;
 import com.sparta.slackservice.domain.Slack;
 import com.sparta.slackservice.domain.SlackMessageStatus;
-import com.sparta.slackservice.dto.request.*;
+import com.sparta.slackservice.dto.request.DeleteSlackMessagesReqDto;
+import com.sparta.slackservice.dto.request.GetSlackMessagesReqDto;
+import com.sparta.slackservice.dto.request.SearchSlackMessagesReqDto;
+import com.sparta.slackservice.dto.request.UpdateSlackMessageReqDto;
 import com.sparta.slackservice.dto.response.*;
 import com.sparta.slackservice.global.exception.CustomException;
 import com.sparta.slackservice.global.exception.ErrorCode;
@@ -10,11 +14,8 @@ import com.sparta.slackservice.repository.SlackRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,14 +27,10 @@ import java.util.UUID;
 public class SlackService {
 
     private final SlackRepository slackRepository;
+    private final SlackFeignClient slackFeignClient;
 
     @Value("${slack.bot.token}")
     private String slackBotToken;
-
-    private final WebClient webClient = WebClient.builder()
-            .baseUrl("https://slack.com/api")
-            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .build();
 
     @Transactional
     public SendSlackMessageResDto sendSlackMessage(String slackAccountId, String messageText) {
@@ -43,13 +40,10 @@ public class SlackService {
         }
 
         // DM 채널 열기
-        Map<String, Object> openResp = webClient.post()
-                .uri("/conversations.open")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + slackBotToken)
-                .bodyValue(Map.of("users", slackAccountId))
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
+        Map<String, Object> openResp = slackFeignClient.openConversation(
+                "Bearer " + slackBotToken,
+                Map.of("users", slackAccountId)
+        );
 
         if (openResp == null) {
             throw new CustomException(ErrorCode.SLACK_DM_OPEN_FAILED);
@@ -70,13 +64,10 @@ public class SlackService {
         }
 
         // 메시지 전송
-        Map<String, Object> msgResp = webClient.post()
-                .uri("/chat.postMessage")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + slackBotToken)
-                .bodyValue(Map.of("channel", channelId, "text", messageText))
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
+        Map<String, Object> msgResp = slackFeignClient.postMessage(
+                "Bearer " + slackBotToken,
+                Map.of("channel", channelId, "text", messageText)
+        );
 
         if (msgResp == null) {
             throw new CustomException(ErrorCode.SLACK_MESSAGE_SEND_FAILED);
@@ -164,17 +155,14 @@ public class SlackService {
                 .orElseThrow(() -> new CustomException(ErrorCode.SLACK_USER_NOT_FOUND));
 
         // chat.update 호출
-        Map<String, Object> response = webClient.post()
-                .uri("/chat.update")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + slackBotToken)
-                .bodyValue(Map.of(
+        Map<String, Object> response = slackFeignClient.updateMessage(
+                "Bearer " + slackBotToken,
+                Map.of(
                         "channel", request.getChannelId(),
                         "ts", request.getSlackMessageTs(),
                         "text", request.getNewText()
-                ))
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
+                )
+        );
 
         if (response == null || !Boolean.TRUE.equals(response.get("ok"))) {
             throw new CustomException(ErrorCode.SLACK_MESSAGE_SEND_FAILED);
@@ -206,16 +194,13 @@ public class SlackService {
                     .orElseThrow(() -> new CustomException(ErrorCode.SLACK_USER_NOT_FOUND));
 
             // Slack API 호출
-            Map<String, Object> response = webClient.post()
-                    .uri("/chat.delete")
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + slackBotToken)
-                    .bodyValue(Map.of(
+            Map<String, Object> response = slackFeignClient.deleteMessage(
+                    "Bearer " + slackBotToken,
+                    Map.of(
                             "channel", msg.getChannelId(),
                             "ts", msg.getSlackMessageTs()
-                    ))
-                    .retrieve()
-                    .bodyToMono(Map.class)
-                    .block();
+                    )
+            );
 
             if (response == null || !Boolean.TRUE.equals(response.get("ok"))) {
                 throw new CustomException(ErrorCode.SLACK_MESSAGE_SEND_FAILED);
