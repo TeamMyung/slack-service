@@ -45,16 +45,6 @@ public class SlackController {
         return ResponseEntity.ok(dto);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<deleteSlackMessageResDto> deleteSlackMessage(
-            @PathVariable UUID id,
-            @RequestBody deleteSlackMessageReqDto request
-    ) {
-        deleteSlackMessageResDto dto = slackService.deleteSlackMessage(id, request);
-        return ResponseEntity.ok(dto);
-    }
-
-    // 다건 삭제
     @DeleteMapping
     public ResponseEntity<deleteSlackMessagesResDto> deleteSlackMessages(@RequestBody deleteSlackMessagesReqDto request) {
         deleteSlackMessagesResDto dto = slackService.deleteSlackMessages(request);

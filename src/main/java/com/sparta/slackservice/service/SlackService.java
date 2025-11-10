@@ -194,40 +194,7 @@ public class SlackService {
                 .build();
     }
 
-    @Transactional
-    public deleteSlackMessageResDto deleteSlackMessage(UUID slackId, deleteSlackMessageReqDto request) {
-
-        Slack message = slackRepository.findById(slackId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SLACK_USER_NOT_FOUND));
-
-        // chat.delete 호출
-        Map<String, Object> response = webClient.post()
-                .uri("/chat.delete")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + slackBotToken)
-                .bodyValue(Map.of(
-                        "channel", request.getChannelId(),
-                        "ts", request.getSlackMessageTs()
-                ))
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
-
-        if (response == null || !Boolean.TRUE.equals(response.get("ok"))) {
-            throw new CustomException(ErrorCode.SLACK_MESSAGE_SEND_FAILED);
-        }
-
-        // Soft Delete
-        message.markAsDeleted();
-
-        // DTO 반환
-        return deleteSlackMessageResDto.builder()
-                .slackId(message.getSlackId())
-                .status(message.getStatus())
-                .deletedAt(message.getDeletedAt())
-                .build();
-    }
-
-    // 다건 삭제
+    // 단건, 다건 삭제
     @Transactional
     public deleteSlackMessagesResDto deleteSlackMessages(deleteSlackMessagesReqDto request) {
 
