@@ -61,6 +61,9 @@ dependencies {
 
     // FeignClient
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    // Eureka
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 }
 
 dependencyManagement {
