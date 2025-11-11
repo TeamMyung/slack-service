@@ -27,8 +27,8 @@ public class SlackAIController {
      */
     @Operation(summary = "주문 발생 시 Slack 메시지 전송", description = "주문 발생 시 AI를 통해 최종 발송 시한을 생성해 Slack 메시지로 전송한다.")
     @PostMapping("/ai-notify")
-    public ResponseEntity<ApiResponse<SendSlackMessageResDto>> sendOrderAINotify(@RequestBody SendOrderAINotifyReqDto request) {
-        SendSlackMessageResDto dto = slackAIService.handleOrderNotification(request);
-        return ResponseEntity.ok(new ApiResponse<>(dto));
+    public ResponseEntity<ApiResponse<String>> sendOrderAINotify(@RequestBody SendOrderAINotifyReqDto request) {
+        slackAIService.handleOrderNotification(request);
+        return ResponseEntity.ok(new ApiResponse<>("Slack 메시지 전송 완료"));
     }
 }

@@ -28,7 +28,7 @@ public class SlackAIService {
     /**
      * 주문 정보를 기반으로 Gemini로 발송 시한을 계산하고 Slack으로 발송한다.
      */
-    public SendSlackMessageResDto handleOrderNotification(SendOrderAINotifyReqDto dto) {
+    public void handleOrderNotification(SendOrderAINotifyReqDto dto) {
         // 프롬프트 생성
         String prompt = buildPrompt(dto);
 
@@ -39,7 +39,7 @@ public class SlackAIService {
         String message = buildSlackMessage(dto, aiResult);
 
         // SlackService를 통해 전송 및 DB 저장
-        return slackService.sendSlackMessage(dto.getSlackAccountId(), message);
+        slackService.sendSlackMessage(dto.getSlackAccountId(), message);
     }
 
     // 프롬프트 생성
