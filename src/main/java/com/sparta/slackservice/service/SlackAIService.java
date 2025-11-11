@@ -67,7 +67,7 @@ public class SlackAIService {
         도착지: %s
         배송 담당자 근무시간: 09 - 18
         """.formatted(
-                dto.getDuration(),
+                dto.getEstimatedTime(),
                 dto.getOrderId(),
                 dto.getProductName(), dto.getQuantity(),
                 dto.getRequest(),dto.getOrderTime(),

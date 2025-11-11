@@ -18,7 +18,7 @@ public class SendOrderAINotifyReqDto {
     private LocalDateTime orderTime; // 주문 승인 일자
     private String startHubName;
     private String endHubName;
-    private Integer duration;
+    private Integer estimatedTime;
     private String slackAccountId; // 발송 허브 담당자
     private String deliveryManagerName; //배송 담당자 정보
     private String deliveryManagerEmail;
