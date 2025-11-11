@@ -14,3 +14,7 @@ server:
 slack:
   bot:
     token: ${SLACK_BOT_TOKEN}
+
+gemini:
+  api:
+    key: ${GEMINI_API_KEY}
