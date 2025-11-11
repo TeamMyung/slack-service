@@ -1,7 +1,6 @@
 package com.sparta.slackservice.service;
 
 import com.sparta.slackservice.dto.request.SendOrderAINotifyReqDto;
-import com.sparta.slackservice.dto.response.SendSlackMessageResDto;
 import com.sparta.slackservice.global.exception.CustomException;
 import com.sparta.slackservice.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
