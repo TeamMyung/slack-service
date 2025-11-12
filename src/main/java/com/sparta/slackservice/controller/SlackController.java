@@ -2,6 +2,9 @@ package com.sparta.slackservice.controller;
 
 import com.sparta.slackservice.dto.request.*;
 import com.sparta.slackservice.dto.response.*;
+import com.sparta.slackservice.global.authz.Action;
+import com.sparta.slackservice.global.authz.Authorize;
+import com.sparta.slackservice.global.authz.Resource;
 import com.sparta.slackservice.global.config.ApiResponse;
 import com.sparta.slackservice.service.SlackService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,6 +31,7 @@ public class SlackController {
      * @return 전송 결과 DTO
      */
     @Operation(summary = "Slack 메시지 전송", description = "Slack 사용자에게 DM 메시지를 전송합니다.")
+    @Authorize(resource = Resource.SLACK, action = Action.CREATE)
     @PostMapping
     public ResponseEntity<ApiResponse<SendSlackMessageResDto>> sendSlackMessage(@RequestBody SendSlackMessageReqDto request) {
         SendSlackMessageResDto dto = slackService.sendSlackMessage(request.getSlackAccountId(), request.getText());
@@ -42,6 +46,7 @@ public class SlackController {
      */
     @Operation(summary = "Slack 메시지 목록 조회", description = "Slack 메시지 목록을 페이징하여 조회합니다."
     )
+    @Authorize(resource = Resource.SLACK, action = Action.READ)
     @GetMapping
     public ResponseEntity<ApiResponse<Page<GetSlackMessagesResDto>>> getSlackMessages(@ModelAttribute GetSlackMessagesReqDto request) {
         Page<GetSlackMessagesResDto> dto = slackService.getSlackMessages(request);
@@ -55,6 +60,7 @@ public class SlackController {
      * @return 메시지 상세 정보 DTO
      */
     @Operation(summary = "Slack 메시지 상세 조회", description = "Slack 메시지의 상세 정보를 조회합니다.")
+    @Authorize(resource = Resource.SLACK, action = Action.READ)
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<GetSlackMessageDetailResDto>> getSlackMessage(@PathVariable UUID id) {
         GetSlackMessageDetailResDto dto = slackService.getSlackMessageById(id);
@@ -69,6 +75,7 @@ public class SlackController {
      * @return 수정 결과 DTO
      */
     @Operation(summary = "Slack 메시지 수정", description = "Slack에 전송된 메시지 내용을 수정합니다.")
+    @Authorize(resource = Resource.SLACK, action = Action.UPDATE)
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<UpdateSlackMessageResDto>> updateSlackMessage(
             @PathVariable UUID id,
@@ -86,6 +93,7 @@ public class SlackController {
      */
     @Operation(summary = "Slack 메시지 삭제", description = "Slack 메시지를 삭제합니다."
     )
+    @Authorize(resource = Resource.SLACK, action = Action.DELETE)
     @DeleteMapping
     public ResponseEntity<ApiResponse<DeleteSlackMessagesResDto>> deleteSlackMessages(@RequestBody DeleteSlackMessagesReqDto request) {
         DeleteSlackMessagesResDto dto = slackService.deleteSlackMessages(request);
@@ -99,6 +107,7 @@ public class SlackController {
      * @return 검색 결과 DTO
      */
     @Operation(summary = "Slack 메시지 검색", description = "키워드로 Slack 메시지를 검색합니다.")
+    @Authorize(resource = Resource.SLACK, action = Action.READ)
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<SearchSlackMessagesResDto>>> searchSlackMessages(@ModelAttribute SearchSlackMessagesReqDto request) {
         Page<SearchSlackMessagesResDto> dto = slackService.searchSlackMessages(request);
