@@ -20,10 +20,6 @@ configurations {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     // SpringBoot
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -64,6 +60,11 @@ dependencies {
 
     // Eureka
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+    // kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+    //zitpack
+    implementation 'com.github.TeamMyung:global-event:07164266fa'
 }
 
 dependencyManagement {
