@@ -1,26 +1,23 @@
 package com.sparta.slackservice.service;
 
-import com.sparta.slackservice.domain.SlackMessage;
+import com.sparta.slackservice.client.SlackFeignClient;
+import com.sparta.slackservice.domain.Slack;
 import com.sparta.slackservice.domain.SlackMessageStatus;
-import com.sparta.slackservice.dto.request.getSlackMessagesReqDto;
-import com.sparta.slackservice.dto.response.getSlackMessageDetailResDto;
-import com.sparta.slackservice.dto.response.getSlackMessagesResDto;
-import com.sparta.slackservice.dto.response.sendSlackMessageResDto;
-import com.sparta.slackservice.exception.CustomException;
-import com.sparta.slackservice.exception.ErrorCode;
+import com.sparta.slackservice.dto.request.DeleteSlackMessagesReqDto;
+import com.sparta.slackservice.dto.request.GetSlackMessagesReqDto;
+import com.sparta.slackservice.dto.request.SearchSlackMessagesReqDto;
+import com.sparta.slackservice.dto.request.UpdateSlackMessageReqDto;
+import com.sparta.slackservice.dto.response.*;
+import com.sparta.slackservice.global.exception.CustomException;
+import com.sparta.slackservice.global.exception.ErrorCode;
 import com.sparta.slackservice.repository.SlackRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -30,30 +27,31 @@ import java.util.UUID;
 public class SlackService {
 
     private final SlackRepository slackRepository;
+    private final SlackFeignClient slackFeignClient;
 
     @Value("${slack.bot.token}")
     private String slackBotToken;
 
-    private final WebClient webClient = WebClient.builder()
-            .baseUrl("https://slack.com/api")
-            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .build();
-
+    /**
+     * Slack 사용자에게 DM 메시지를 전송한다.
+     *
+     * @param slackAccountId Slack 사용자 ID
+     * @param messageText 전송할 메시지 내용
+     * @return 전송 결과 {@link SendSlackMessageResDto}
+     * @throws CustomException Slack 사용자 ID가 유효하지 않거나, Slack API 호출 실패 시
+     */
     @Transactional
-    public sendSlackMessageResDto sendSlackMessage(String slackAccountId, String messageText) {
+    public SendSlackMessageResDto sendSlackMessage(String slackAccountId, String messageText) {
         // 유효성 검증
         if (slackAccountId == null || slackAccountId.isBlank()) {
             throw new CustomException(ErrorCode.INVALID_SLACK_ACCOUNT_ID);
         }
 
         // DM 채널 열기
-        Map<String, Object> openResp = webClient.post()
-                .uri("/conversations.open")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + slackBotToken)
-                .bodyValue(Map.of("users", slackAccountId))
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
+        Map<String, Object> openResp = slackFeignClient.openConversation(
+                "Bearer " + slackBotToken,
+                Map.of("users", slackAccountId)
+        );
 
         if (openResp == null) {
             throw new CustomException(ErrorCode.SLACK_DM_OPEN_FAILED);
@@ -74,13 +72,10 @@ public class SlackService {
         }
 
         // 메시지 전송
-        Map<String, Object> msgResp = webClient.post()
-                .uri("/chat.postMessage")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + slackBotToken)
-                .bodyValue(Map.of("channel", channelId, "text", messageText))
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
+        Map<String, Object> msgResp = slackFeignClient.postMessage(
+                "Bearer " + slackBotToken,
+                Map.of("channel", channelId, "text", messageText)
+        );
 
         if (msgResp == null) {
             throw new CustomException(ErrorCode.SLACK_MESSAGE_SEND_FAILED);
@@ -98,8 +93,8 @@ public class SlackService {
         String ts = (String) msgResp.get("ts");
 
         // DB 저장
-        SlackMessage saved = slackRepository.save(
-                SlackMessage.builder()
+        Slack saved = slackRepository.save(
+                Slack.builder()
                         .slackAccountId(slackAccountId)
                         .slackMessage(messageText)
                         .channelId(channelId)
@@ -109,27 +104,34 @@ public class SlackService {
         );
 
         // DTO 반환
-        return sendSlackMessageResDto.builder()
+        return SendSlackMessageResDto.builder()
                 .slackId(saved.getSlackId())
                 .channelId(saved.getChannelId())
                 .message(saved.getSlackMessage())
                 .status(saved.getStatus())
                 .slackMessageTs(saved.getSlackMessageTs())
                 .createdAt(saved.getCreatedAt())
+                .createdBy(saved.getCreatedBy())
                 .build();
     }
 
+    /**
+     * Slack 메시지 목록을 페이징 및 조회한다.
+     *
+     * @param reqDto 페이징 및 정렬 요청 정보
+     * @return {@link GetSlackMessagesResDto}의 페이징 결과
+     */
     @Transactional(readOnly = true)
-    public Page<getSlackMessagesResDto> getSlackMessages(getSlackMessagesReqDto reqDto) {
+    public Page<GetSlackMessagesResDto> getSlackMessages(GetSlackMessagesReqDto reqDto) {
         Pageable pageable = buildPageable(
                 reqDto.getPage(),
                 reqDto.getSize(),
                 reqDto.getSortBy(),
                 reqDto.isAsc());
 
-        Page<SlackMessage> messagePage = slackRepository.findAll(pageable);
+        Page<Slack> messagePage = slackRepository.findAll(pageable);
 
-        return messagePage.map(msg -> getSlackMessagesResDto.builder()
+        return messagePage.map(msg -> GetSlackMessagesResDto.builder()
                 .slackId(msg.getSlackId())
                 .slackAccountId(msg.getSlackAccountId())
                 .message(msg.getSlackMessage())
@@ -140,12 +142,18 @@ public class SlackService {
         );
     }
 
+    /**
+     * 특정 Slack 메시지의 상세 정보를 조회한다.
+     *
+     * @param slackId Slack 메시지 UUID
+     * @return 상세 정보 {@link GetSlackMessageDetailResDto}
+     */
     @Transactional(readOnly = true)
-    public getSlackMessageDetailResDto getSlackMessageById(UUID slackId) {
-        SlackMessage message = slackRepository.findById(slackId)
+    public GetSlackMessageDetailResDto getSlackMessageById(UUID slackId) {
+        Slack message = slackRepository.findById(slackId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SLACK_MESSAGE_NOT_FOUND));
 
-        return getSlackMessageDetailResDto.builder()
+        return GetSlackMessageDetailResDto.builder()
                 .slackId(message.getSlackId())
                 .slackAccountId(message.getSlackAccountId())
                 .slackMessage(message.getSlackMessage())
@@ -161,6 +169,127 @@ public class SlackService {
                 .build();
     }
 
+    /**
+     * Slack 메시지를 수정한다.
+     *
+     * @param slackId 수정할 메시지의 UUID
+     * @param request 수정 요청 DTO
+     * @return 수정 결과 {@link UpdateSlackMessageResDto}
+     */
+    @Transactional
+    public UpdateSlackMessageResDto updateSlackMessage(UUID slackId, UpdateSlackMessageReqDto request) {
+
+        Slack message = slackRepository.findById(slackId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SLACK_USER_NOT_FOUND));
+
+        // chat.update 호출
+        Map<String, Object> response = slackFeignClient.updateMessage(
+                "Bearer " + slackBotToken,
+                Map.of(
+                        "channel", request.getChannelId(),
+                        "ts", request.getSlackMessageTs(),
+                        "text", request.getNewText()
+                )
+        );
+
+        if (response == null || !Boolean.TRUE.equals(response.get("ok"))) {
+            throw new CustomException(ErrorCode.SLACK_MESSAGE_SEND_FAILED);
+        }
+
+        // DB 반영
+        message.updateMessage(request.getNewText());
+
+        // DTO 반환
+        return UpdateSlackMessageResDto.builder()
+                .slackId(message.getSlackId())
+                .channelId(message.getChannelId())
+                .message(message.getSlackMessage())
+                .status(message.getStatus())
+                .slackMessageTs(message.getSlackMessageTs())
+                .updatedAt(message.getUpdatedAt())
+                .updatedBy(message.getUpdatedBy())
+                .build();
+    }
+
+    /**
+     * Slack 메시지를 단건, 다건 삭제한디.
+     * <p>Slack API를 통해 실제 메시지를 삭제하고, DB에서는 Soft Delete 처리한다.</p>
+     *
+     * @param request 삭제할 메시지 목록 요청 DTO
+     * @return 삭제된 메시지 정보 {@link DeleteSlackMessagesResDto}
+     */
+    @Transactional
+    public DeleteSlackMessagesResDto deleteSlackMessages(DeleteSlackMessagesReqDto request) {
+
+        List<DeleteSlackMessagesResDto.DeletedMessageInfo> deletedList = new ArrayList<>();
+
+        for (DeleteSlackMessagesReqDto.MessageDeleteInfo msg : request.getMessages()) {
+
+            Slack message = slackRepository.findById(msg.getSlackId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.SLACK_USER_NOT_FOUND));
+
+            // Slack API 호출
+            Map<String, Object> response = slackFeignClient.deleteMessage(
+                    "Bearer " + slackBotToken,
+                    Map.of(
+                            "channel", msg.getChannelId(),
+                            "ts", msg.getSlackMessageTs()
+                    )
+            );
+
+            if (response == null || !Boolean.TRUE.equals(response.get("ok"))) {
+                throw new CustomException(ErrorCode.SLACK_MESSAGE_SEND_FAILED);
+            }
+
+            // Soft delete
+            message.markAsDeleted();
+
+            // 결과 리스트에 추가
+            deletedList.add(
+                    DeleteSlackMessagesResDto.DeletedMessageInfo.builder()
+                            .slackId(message.getSlackId())
+                            .status(message.getStatus())
+                            .deletedAt(message.getDeletedAt())
+                            .deletedBy(message.getDeletedBy())
+                            .build()
+            );
+        }
+
+        return DeleteSlackMessagesResDto.builder()
+                .deletedMessages(deletedList)
+                .build();
+    }
+
+    /**
+     * Slack 메시지를 키워드로 검색한다.
+     *
+     * @param req 검색 요청 DTO
+     * @return {@link SearchSlackMessagesResDto} 페이징 결과
+     */
+    @Transactional(readOnly = true)
+    public Page<SearchSlackMessagesResDto> searchSlackMessages(SearchSlackMessagesReqDto req) {
+        Pageable pageable = buildPageable(req.getPage(), req.getSize(), req.getSortBy(), req.isAsc());
+        Page<Slack> resultPage = slackRepository.searchSlackMessages(req.getKeyword(), pageable);
+
+        return resultPage.map(m -> SearchSlackMessagesResDto.builder()
+                .slackId(m.getSlackId())
+                .slackAccountId(m.getSlackAccountId())
+                .slackMessage(m.getSlackMessage())
+                .status(m.getStatus())
+                .createdAt(m.getCreatedAt())
+                .updatedAt(m.getUpdatedAt())
+                .build());
+    }
+
+    /**
+     * Pageable 객체를 생성한다.
+     *
+     * @param page 페이지 번호 (1부터 시작)
+     * @param size 페이지 크기 (10, 30, 50)
+     * @param sortBy 정렬 기준
+     * @param isAsc 오름차순 여부
+     * @return Pageable 객체
+     */
     private Pageable buildPageable(int page, int size, String sortBy, boolean isAsc) {
         // 허용 가능한 페이지 크기 목록
         List<Integer> allowedSizes = List.of(10, 30, 50);
