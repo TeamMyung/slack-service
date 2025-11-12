@@ -6,8 +6,6 @@ import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-//import org.springframework.security.core.Authentication;
-//import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
@@ -16,22 +14,32 @@ import java.util.Optional;
 public class JpaAuditingConfig {
 
     @Bean
-    public AuditorAware<String> auditorAware() {
+    public AuditorAware<Long> auditorAware() {
         return new SecurityAuditorAware();
     }
 
-    public static class SecurityAuditorAware implements AuditorAware<String> {
+    public static class SecurityAuditorAware implements AuditorAware<Long> {
 
         @Override
-        public Optional<String> getCurrentAuditor() {
+        public Optional<Long> getCurrentAuditor() {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth == null || auth.isAuthenticated()) return Optional.empty();
-
-            try {
-                return Optional.of(auth.getName());
-            } catch (NumberFormatException e) {
+            if (auth == null || !auth.isAuthenticated()) {
                 return Optional.empty();
             }
+
+            try {
+                Object principal = auth.getPrincipal();
+                if (principal instanceof Long userId) {
+                    return Optional.of(userId);
+                }
+                if (principal instanceof String str && str.matches("\\d+")) {
+                    return Optional.of(Long.parseLong(str));
+                }
+            } catch (Exception e) {
+                return Optional.empty();
+            }
+
+            return Optional.empty();
         }
     }
 }

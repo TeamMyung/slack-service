@@ -21,14 +21,27 @@ public class InternalHeaderAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         // 게이트웨이가 전달한 사용자 컨텍스트 추출
-        String username = req.getHeader("username");
+        String userIdHeader = req.getHeader("user_id");
         String role = req.getHeader("role");
 
+        Long userId = null;
+        try {
+            if (userIdHeader != null && !userIdHeader.isBlank()) {
+                userId = Long.parseLong(userIdHeader);
+            }
+        } catch (NumberFormatException e) {
+            SecurityContextHolder.clearContext();
+            chain.doFilter(req, res);
+            return;
+        }
+
         // 권한 세팅
-        Collection<GrantedAuthority> auths = List.of(new SimpleGrantedAuthority("ROLE_" + (role == null ? "" : role)));
+        Collection<GrantedAuthority> auths = List.of(
+                new SimpleGrantedAuthority("ROLE_" + (role == null ? "" : role))
+        );
 
         UsernamePasswordAuthenticationToken auth =
-                new UsernamePasswordAuthenticationToken(username == null ? "" : username, null, auths);
+                new UsernamePasswordAuthenticationToken(userId, null, auths);
 
         SecurityContextHolder.getContext().setAuthentication(auth);
 
