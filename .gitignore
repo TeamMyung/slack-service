@@ -35,3 +35,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# Ignore PostgreSQL data
+docker/db/postgresql/
+docker/db/data/
+postgres_data/
+pg_data/
