@@ -7,8 +7,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class sendSlackMessageReqDto {
-        private String slackAccountId;
-        private String text;
-        private String channelId;
+public class GetSlackMessagesReqDto {
+    private int page;
+    private int size;
+    private String sortBy;
+    private boolean isAsc;
 }

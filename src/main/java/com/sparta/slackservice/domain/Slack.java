@@ -4,6 +4,7 @@ import brave.internal.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -12,7 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "p_slacks")
-public class SlackMessage extends BaseEntity{
+public class Slack extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,4 +34,14 @@ public class SlackMessage extends BaseEntity{
 
     @Column(nullable = false)
     private String slackMessageTs;
+
+    public void updateMessage(String newMessage) {
+        this.slackMessage = newMessage;
+        this.status = SlackMessageStatus.UPDATED;
+    }
+
+    public void markAsDeleted() {
+        this.status = SlackMessageStatus.DELETED;
+        this.setDeleted();
+    }
 }

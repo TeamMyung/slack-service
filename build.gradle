@@ -58,6 +58,18 @@ dependencies {
     // zipkin
     implementation 'io.micrometer:micrometer-tracing-bridge-brave'
     implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+
+    // FeignClient
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    // Eureka
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2025.0.0"
+    }
 }
 
 tasks.named('test') {

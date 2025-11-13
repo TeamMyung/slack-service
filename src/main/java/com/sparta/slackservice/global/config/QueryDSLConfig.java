@@ -1,4 +1,4 @@
-package com.sparta.slackservice.config;
+package com.sparta.slackservice.global.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
